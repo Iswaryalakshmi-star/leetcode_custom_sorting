@@ -1,0 +1,58 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Custom comparison function for qsort
+int compare(const void *a, const void *b) {
+    char str1[60];
+    char str2[60];
+    
+    // Dereference the string pointers passed by qsort
+    char *s1 = *(char **)a;
+    char *s2 = *(char **)b;
+    
+    // Create concatenated variations: (s1 + s2) vs (s2 + s1)
+    strcpy(str1, s1);
+    strcat(str1, s2);
+    
+    strcpy(str2, s2);
+    strcat(str2, s1);
+    
+    // Sort in descending order of string combinations
+    return strcmp(str2, str1);
+}
+
+char* largestNumber(int* nums, int numsSize) {
+    // 1. Convert integers to an array of strings
+    char** numStrs = (char**)malloc(numsSize * sizeof(char*));
+    int totalLength = 0;
+    
+    for (int i = 0; i < numsSize; i++) {
+        numStrs[i] = (char*)malloc(20 * sizeof(char));
+        sprintf(numStrs[i], "%d", nums[i]);
+        totalLength += strlen(numStrs[i]);
+    }
+    
+    // 2. Sort the string array using the custom rule
+    qsort(numStrs, numsSize, sizeof(char*), compare);
+    
+    // 3. Handle edge case: if the highest sorted element is "0"
+    if (strcmp(numStrs[0], "0") == 0) {
+        // Free allocated memory before early return
+        for (int i = 0; i < numsSize; i++) free(numStrs[i]);
+        free(numStrs);
+        return "0";
+    }
+    
+    // 4. Allocate space for the final combined result string
+    char* result = (char*)malloc((totalLength + 1) * sizeof(char));
+    result[0] = '\0'; // Initialize empty string
+    
+    for (int i = 0; i < numsSize; i++) {
+        strcat(result, numStrs[i]);
+        free(numStrs[i]); // Free individual elements as we go
+    }
+    free(numStrs);
+    
+    return result;
+}
